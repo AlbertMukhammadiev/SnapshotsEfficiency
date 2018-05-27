@@ -84,7 +84,7 @@ def commit_changes(snapshot, dimensions, file_name, acc=[0]):
             fout.write('*') if subblock else fout.write('_')
         fout.write('\n')
 
-    with open(file_name, 'a') as fout:
+    with open(file_name, 'a', newline='') as fout:
         csv_writer = writer(fout)
         snapshot.shape = volume_size // block_size, block_size // subblock_size
         for i, block in enumerate(snapshot):
