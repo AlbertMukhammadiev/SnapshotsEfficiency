@@ -1,7 +1,10 @@
 from unittest import TestCase, main
 from numpy import zeros, count_nonzero
 
-import distribute
+import os
+import sys
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+from distribution import distribute
 
 class DistributeTestCase(TestCase):
     def setUp(self):
@@ -55,6 +58,7 @@ class DistributeTestCase(TestCase):
         distribute.uniform_ow(space, 96, 80)
         self.assertTrue(count_nonzero(prev_state * space) == 64)
         self.assertTrue(count_nonzero(~prev_state * space) == 32)
+
 
 if __name__ == '__main__':
     main()

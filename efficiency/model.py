@@ -32,8 +32,6 @@ def migration_cow(file_name):
     check_structure()
     print(overwrite_count)
 
-    def check_structure():
-        pass
     check_structure()
     print(overwrite_count)
 
