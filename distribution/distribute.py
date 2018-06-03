@@ -1,8 +1,24 @@
-from numpy import arange, hstack, count_nonzero, unique, zeros
-from numpy.random import normal, randint
+"""This module contains several functions for distributing data
+into array.
+
+Functions:
+    sequential(space, startno, ndata) -> None
+    uniform(space, ndata) -> None
+    uniform_ow(space, ndata, ndata_overwrite) -> None
+    normal(space, ndata) -> None
+"""
+
+from numpy import arange, hstack, unique, zeros, random
 
 
 def sequential(space, startno, ndata):
+    """Distribute data in space in place sequentially.
+    
+    Arguments:
+    space -- 1-dimensional numpy array that represents space
+    startno -- position which the sequential writing begins from
+    ndata -- number of cells to write
+    """
     space.fill(False)
     remainder = max(0, ndata - (len(space) - startno))
     positions = hstack((arange(remainder), arange(startno, startno + ndata - remainder)))
@@ -10,6 +26,12 @@ def sequential(space, startno, ndata):
 
 
 def uniform(space, ndata):
+    """Distribute data in space in place uniformly.
+    
+    Arguments:
+    space -- 1-dimensional numpy array that represents space
+    ndata -- total number of cells to write
+    """
     space.fill(False)
     if ndata >= len(space):
         space.fill(True)
@@ -18,7 +40,7 @@ def uniform(space, ndata):
     positions = zeros(0, dtype=int)
     indices = zeros(0, dtype=int)
     while len(indices) < ndata:
-        positions = randint(0, len(space), 3 * ndata)
+        positions = hstack((positions, random.randint(0, len(space), ndata)))
         _, indices = unique(positions, return_index=True)
 
     indices.sort()
@@ -26,6 +48,14 @@ def uniform(space, ndata):
 
 
 def uniform_ow(space, ndata, ndata_overwrite):
+    """Distribute data in space in place uniformly
+    taking into account the occupied positions.
+    
+    Arguments:
+    space -- 1-dimensional numpy array that represents space
+    ndata -- total number of cells to write
+    ndata_overwrite -- number of cells to overwrite
+    """
     occupied_pos = space.nonzero()[0]
     occupied_cells = zeros(len(occupied_pos), dtype=bool)
     uniform(occupied_cells, ndata_overwrite)
@@ -39,43 +69,33 @@ def uniform_ow(space, ndata, ndata_overwrite):
     space[free_pos] = free_cells
 
 
+def normal(space, ndata):
+    """Distribute data in space in place normally.
+    
+    Arguments:
+    space -- 1-dimensional numpy array that represents space
+    ndata -- total number of cells to write
+    """
+    if ndata >= len(space):
+        space.fill(True)
+        return
 
-# def distribute_normal(space, ndata, mean=None, standart_deviation=None):
-#     if ndata >= len(space):
-#         space.fill(True)
-#         return
+    mu, sigma = random.randint(space.size), space.size // 7
+    positions = zeros(0, dtype=int)
+    indices = zeros(0, dtype=int)
+    while len(indices) < ndata:
+        positions = hstack((positions, random.normal(mu, sigma, ndata).round().astype(int)))
+        _, indices = unique(positions, return_index=True)
 
-#     if mean is not None and standart_deviation is not None:
-#         if mean > space or mean < 0:
-#             print('out of range of space')
-#             return
-
-#     if mean is None:
-#         mean = len(space) // 2
-#     if standart_deviation is None or standart_deviation > len(space) // 7:
-#         standart_deviation = len(space) // 7
-
-#     positions = []
-#     while len(positions) < ndata:
-#         positions = normal(mean, standart_deviation, 3 * ndata)
-#         positions, indices = unique(positions.round().astype(int), return_index=True)
-
-#     space[positions[indices.argsort()][:ndata] % len(space)] = True
+    indices.sort()
+    space[positions[indices][:ndata] % space.size] = True
 
 
-# def distribute_normal_ow(space, ndata, ndata_overwrite, mean=None, standart_deviation=None):
-#     occupied_pos = where(space)
-#     occupied_cells = zeros(len(occupied_pos), dtype=bool)
-#     occupied_mean = None if mean is None else mean * len(occupied_pos) // len(space)
-#     occupied_deviation = None if mean is None else standart_deviation * len(occupied_pos) // len(space)
-#     distribute_normal(occupied_cells, ndata_overwrite * ndata, occupied_mean, occupied_deviation)
-
-#     free_pos = where(~space)
-#     free_cells = zeros(len(free_pos), dtype=bool)
-#     free_mean = None if mean is None else mean * len(free_pos) // len(space)
-#     free_deviation = None if mean is None else standart_deviation * len(free_pos) // len(space)
-#     distribute_normal(occupied_cells, (1 - ndata_overwrite) * ndata, free_mean, free_deviation)
-
-#     space.fill(False)
-#     space[occupied_pos] = occupied_cells
-#     space[free_pos] = free_cells
+if __name__ == '__main__':
+    from matplotlib import pyplot
+    space = zeros(100, dtype=bool)
+    normal(space, 40)    
+    l = pyplot.plot(space,  'ro')
+    pyplot.setp(l, markersize=5)
+    pyplot.setp(l, markerfacecolor='C0')
+    pyplot.show()
