@@ -1,8 +1,31 @@
+"""This module allows to compute migrations count in a block
+with different algorithms of snapshots.
+
+Functions:
+    cow(source, snapshot) -> int
+    row(snapshots) -> int
+    row_m(snapshots) -> int
+"""
+
+
 def cow(source, snapshot):
+    """Return the migrations count in the block under
+    copy-on-write algorithm.
+    
+    Arguments:
+    source -- source block (1-d array)
+    snapshot -- data that came after snapshot to block (1-d array)
+    """
     return sum(source * snapshot)
 
 
 def row(snapshots):
+    """Return the migrations count in the block under
+    redirect-on-write algorithm.
+    
+    Arguments:
+    snapshots -- active snapshots (deque of 1-d arrays with maxlen=n)
+    """
     if (len(snapshots) == snapshots.maxlen):
         removed = snapshots.popleft()
         last = snapshots.popleft()
@@ -15,6 +38,12 @@ def row(snapshots):
 
 
 def row_m(snapshots):
+    """Return the migrations count in the block under modified
+    redirect-on-write algorithm (with forward references)
+    
+    Arguments:
+    snapshots -- active snapshots (deque of 1-d arrays with maxlen=n)
+    """
     if (len(snapshots) == snapshots.maxlen):
         removed = snapshots.popleft()
         migr = removed.copy()

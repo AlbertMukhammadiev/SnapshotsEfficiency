@@ -95,7 +95,7 @@ class MigrationsTestCase(TestCase):
 
 
     def test_cow(self):
-        """Verify correctly counts the number of migrating subblocks"""
+        """Verify the correctness of counting migrating subblocks"""
         source_block = bool_array([1,0,0,1,1,0,0,1,0,1])
         new_block = bool_array([0,0,1,0,1,1,0,0,1,1])
         self.assertEqual(migrations.cow(source_block, new_block), 2)
@@ -110,7 +110,7 @@ class MigrationsTestCase(TestCase):
 
 
     def test_row(self):
-        """Verify"""
+        """Verify the correctness of counting migrating subblocks"""
         previous_state = list(self.snapshots1)
         self.assertEqual(migrations.row(self.snapshots1), 4)
         self.assertEqual(len(self.snapshots1), 7)
@@ -152,14 +152,7 @@ class MigrationsTestCase(TestCase):
 
 
     def test_row_m(self):
-        """Verify"""
-        def print_snapshot(blocks):
-            print()
-            for block in blocks:
-                for subblock in block:
-                    print('#', end='') if subblock else print('_', end='')
-                print()
-
+        """Verify the correctness of counting migrating subblocks"""
         previous_state = list(self.snapshots1)
         self.assertEqual(migrations.row_m(self.snapshots1), 4)
         self.assertEqual(len(self.snapshots1), 7)
