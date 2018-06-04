@@ -4,13 +4,13 @@ from csv import reader
 from numpy import array
 from collections import deque
 
-import migrations
+from efficiency import migrations
 
 
 def create_parser():
     """Parse command-line arguments and return parser."""
     parser = ArgumentParser(
-        description='Compute the efficiency of using snapshots for the '\
+        description='Calculate the efficiency of using snapshots for the '\
                     'selected algorithm and the number of active snapshots. '\
                     'Efficiency is the amount of data migrating and '\
                     'the ratio of occupied logical blocks to physical ones.'
@@ -47,8 +47,8 @@ def row_efficiency(file_name, nactive, modified=False):
     with open(file_name, newline='') as fin:
         block_reader = reader(fin)
         for line in block_reader:
-            values = array(line, dtype=int)
-            isnap, iblock, block = values[0], values[1], values[2:].astype(bool)
+            isnap, iblock = int(line[0]), int(line[1])
+            block = array(line[2:], dtype=int).astype(bool)
             try: 
                 migrations_count += migrations_row(snapshots[iblock])
                 source[iblock] += block
@@ -57,7 +57,14 @@ def row_efficiency(file_name, nactive, modified=False):
                 source[iblock] = block.copy()
                 snapshots[iblock] = deque([block], maxlen=nactive)
 
-    return migrations_count        
+    logical = 0
+    for _, block in source.items():
+        logical += bool(sum(block))
+    physical = 0
+    for _, snapshot in snapshots.items():
+        for block in snapshot:
+            physical += bool(sum(block))
+    return migrations_count, logical / physical
 
 
 def cow_efficiency(file_name, nactive):
@@ -73,18 +80,25 @@ def cow_efficiency(file_name, nactive):
     with open(file_name, newline='') as fin:
         block_reader = reader(fin)
         for line in block_reader:
-            print(line)
-            values = array(line, dtype=int)
-            isnap, iblock, block = values[0], values[1], values[2:].astype(bool)
+            isnap, iblock = int(line[0]), int(line[1])
+            block = array(line[2:], dtype=int).astype(bool)
             try:
                 migrations_count += migrations.cow(source[iblock], block)
                 source[iblock] += block
                 snapshots[iblock].append(block)
             except KeyError:
                 source[iblock] = block
-                snapshots[iblock] = deque(block, maxlen=nactive)
+                snapshots[iblock] = deque([block], maxlen=nactive)
 
-    return migrations_count
+    logical = 0
+    for _, block in source.items():
+        logical += bool(sum(block))
+    physical = 0
+    for _, snapshot in snapshots.items():
+        for block in snapshot:
+            physical += bool(sum(block))
+    
+    return migrations_count, logical / physical
 
 
 if __name__ == '__main__':
