@@ -29,11 +29,20 @@ class CalculateTestCase(TestCase):
         self.assertAlmostEqual(ratio, 4 / 26)
         self.assertAlmostEqual(ratio2, 4 / 14)
 
+        migrtns, ratio = calculate.cow_efficiency('tests/uniform.csv', 10)
+        self.assertEqual(migrtns, 52)
+        self.assertAlmostEqual(ratio, 4 / 37)
+
     def test_row_efficiency(self):
         """Verify the correctness of counting migrating subblocks
         
         and the ratio of occupied logical blocks to physical ones.
         """
+        migrtns, ratio = calculate.row_efficiency('tests/uniform.csv', 10,
+                                                  modified=False)
+        self.assertEqual(migrtns, 40)
+        self.assertAlmostEqual(ratio, 4 / 37)
+
         migrtns, ratio = calculate.row_efficiency('tests/sequential.csv', 5,
                                                   modified=False)
         self.assertAlmostEqual(ratio, 4 / 10)
@@ -70,6 +79,11 @@ class CalculateTestCase(TestCase):
                                                   modified=True)
         self.assertEqual(migrtns, 54)
         self.assertAlmostEqual(ratio, 4 / 29)
+
+        migrtns, ratio = calculate.row_efficiency('tests/uniform.csv', 10,
+                                                  modified=True)
+        self.assertEqual(migrtns, 19)
+        self.assertAlmostEqual(ratio, 4 / 38)
     
 
 if __name__ == '__main__':

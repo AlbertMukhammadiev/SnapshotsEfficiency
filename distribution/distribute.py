@@ -20,7 +20,7 @@ def sequential(space, startno, ndata):
     ndata -- number of cells to write
     """
     space.fill(False)
-    remainder = max(0, ndata - (len(space) - startno))
+    remainder = max(0, ndata - (space.size - startno))
     positions = hstack((arange(remainder), arange(startno, startno + ndata - remainder)))
     space[positions] = True
 
@@ -33,14 +33,14 @@ def uniform(space, ndata):
     ndata -- total number of cells to write
     """
     space.fill(False)
-    if ndata >= len(space):
+    if ndata >= space.size:
         space.fill(True)
         return
 
     positions = zeros(0, dtype=int)
     indices = zeros(0, dtype=int)
-    while len(indices) < ndata:
-        positions = hstack((positions, random.randint(0, len(space), ndata)))
+    while indices.size < ndata:
+        positions = hstack((positions, random.randint(0, space.size, ndata)))
         _, indices = unique(positions, return_index=True)
 
     indices.sort()
@@ -57,12 +57,12 @@ def uniform_ow(space, ndata, ndata_overwrite):
     ndata_overwrite -- number of cells to overwrite
     """
     occupied_pos = space.nonzero()[0]
-    occupied_cells = zeros(len(occupied_pos), dtype=bool)
+    occupied_cells = zeros(occupied_pos.size, dtype=bool)
     uniform(occupied_cells, ndata_overwrite)
 
     free_pos = (~space).nonzero()[0]
-    free_cells = zeros(len(free_pos), dtype=bool)
-    uniform(free_cells, ndata - min(ndata_overwrite, len(occupied_pos)))
+    free_cells = zeros(free_pos.size, dtype=bool)
+    uniform(free_cells, ndata - min(ndata_overwrite, occupied_pos.size))
 
     space.fill(False)
     space[occupied_pos] = occupied_cells
@@ -76,14 +76,14 @@ def normal(space, ndata):
     space -- 1-dimensional numpy array that represents space
     ndata -- total number of cells to write
     """
-    if ndata >= len(space):
+    if ndata >= space.size:
         space.fill(True)
         return
 
     mu, sigma = random.randint(space.size), space.size // 7
     positions = zeros(0, dtype=int)
     indices = zeros(0, dtype=int)
-    while len(indices) < ndata:
+    while indices.size < ndata:
         positions = hstack((positions, random.normal(mu, sigma, ndata).round().astype(int)))
         _, indices = unique(positions, return_index=True)
 

@@ -1,8 +1,11 @@
 from sys import argv
 from argparse import ArgumentParser
-from csv import reader
+from csv import reader, writer
 from numpy import array
 from collections import deque
+import os
+import sys
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 from efficiency import migrations
 
@@ -48,8 +51,10 @@ def row_efficiency(file_name, nactive, modified=False):
         block_reader = reader(fin)
         for line in block_reader:
             isnap, iblock = int(line[0]), int(line[1])
+            if not iblock:
+                print(isnap)
             block = array(line[2:], dtype=int).astype(bool)
-            try: 
+            try:
                 migrations_count += migrations_row(snapshots[iblock])
                 source[iblock] += block
                 snapshots[iblock].append(block)
@@ -81,13 +86,15 @@ def cow_efficiency(file_name, nactive):
         block_reader = reader(fin)
         for line in block_reader:
             isnap, iblock = int(line[0]), int(line[1])
+            if not iblock:
+                print(isnap)
             block = array(line[2:], dtype=int).astype(bool)
             try:
                 migrations_count += migrations.cow(source[iblock], block)
                 source[iblock] += block
                 snapshots[iblock].append(block)
             except KeyError:
-                source[iblock] = block
+                source[iblock] = block.copy()
                 snapshots[iblock] = deque([block], maxlen=nactive)
 
     logical = 0
@@ -104,13 +111,22 @@ def cow_efficiency(file_name, nactive):
 if __name__ == '__main__':
     parser = create_parser()
     args = parser.parse_args(argv[1:])
-    migrations = 0
-
-    if args.cow:
-        migrations = cow_efficiency(args.filename + '.csv', args.nactive)
-    elif args.row:
-        migrations = row_efficiency(args.filename + '.csv', args.nactive)
-    elif args.row_m:
-        migrations = row_efficiency(args.filename + '.csv', args.nactive, True)
     
-    print(migrations)
+    result = (0, 0)
+    algorithm = 'None'
+    file_name = 'models/' + args.filename + '.csv'
+    if args.cow:
+        algorithm = 'cow'
+        result = cow_efficiency(file_name, args.nactive)
+    elif args.row:
+        algorithm = 'row'
+        result = row_efficiency(file_name, args.nactive)
+    elif args.row_m:
+        algorithm = 'row_m'
+        result = row_efficiency(file_name, args.nactive, True)
+    
+    with open('models/results.csv', 'a', newline='') as fout:
+        csv_writer = writer(fout)
+        csv_writer.writerow([args.filename, args.nactive, algorithm, result[0], result[1]])
+            
+    print(result)

@@ -77,7 +77,7 @@ def commit_changes(snapshot, dimensions, file_name, acc=[0]):
     where 1 means that cell is occupied, 0 - free
     """
     volume_size, block_size, subblock_size = dimensions
-    with open('tests/{0}.csv'.format(file_name), 'a', newline='') as fout:
+    with open('models/{0}.csv'.format(file_name), 'a', newline='') as fout:
         csv_writer = writer(fout)
         snapshot.shape = volume_size // block_size, block_size // subblock_size
         for i, block in enumerate(snapshot):
